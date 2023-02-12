@@ -1,0 +1,65 @@
+<b:if cond='data:blog.pageType == &quot;item&quot;'>  
+          
+    <div class='related-posts-container'>
+        <h2 class='related-posts-title'>Related Posts</h2>
+
+        <div class='related-posts'/>
+    </div>
+    
+    <script>
+        let allPosts = [];
+        
+        const relatedPostsContainer = document.querySelector(&#39;.related-posts&#39;);
+        const relatedPostsMainContainer = document.querySelector(&#39;.related-posts-container&#39;);
+        
+        let currentPostLink = &#39;<data:post.url/>&#39;;
+                    
+        const relatedPosts = (json) =&gt; {
+            allPosts.push(...json.feed.entry);
+        }  
+        
+        const displayData = () =&gt; {
+        
+            const uniqueList = allPosts.filter((post, index, self) =&gt; index === self.findIndex((p) =&gt; p.link[0].href === post.link[0].href));
+        
+            const filteredList = uniqueList.filter(post =&gt; post.link[post.link.length - 1].href !== currentPostLink);
+        
+            if (filteredList.length &lt; 2) { 
+                relatedPostsMainContainer.style.display = &#39;none&#39;;
+            } else {
+                const shuffledList = filteredList.sort((a, b) =&gt; 0.5 - Math.random()).slice(0, 3);
+                shuffledList.forEach((post) =&gt; {
+                    const thumbnailLink = document.createElement(&quot;a&quot;);
+                    thumbnailLink.href = post.link[post.link.length - 1].href
+
+                    const thumbnail = document.createElement(&quot;img&quot;);
+                    thumbnail.src = post.media$thumbnail.url.replace(&#39;/s72&#39;, &#39;/s260&#39;);
+
+                    thumbnailLink.appendChild(thumbnail);
+
+                    const title = document.createElement(&quot;a&quot;);
+                    title.classList.add(&quot;post-title&quot;);
+                    title.href = post.link[post.link.length - 1].href;
+                    title.innerHTML = post.title.$t;
+
+                    const relatedPost = document.createElement(&quot;div&quot;);
+                    relatedPost.classList.add(&quot;related-post&quot;);
+
+                    relatedPost.appendChild(thumbnailLink);
+                    relatedPost.appendChild(title);
+
+                    relatedPostsContainer.appendChild(relatedPost);
+                });         
+            }
+        }
+    </script>
+
+    <b:loop values='data:post.labels' var='label'>
+        <script expr:src='&quot;/feeds/posts/default/-/&quot; + data:label.name + &quot;?alt=json-in-script&amp;callback=relatedPosts&quot;'/>
+    </b:loop>
+    
+    <script>
+        displayData();  
+    </script>
+    
+</b:if>
